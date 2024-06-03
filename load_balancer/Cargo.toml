@@ -1,0 +1,15 @@
+[package]
+name = "load_balancer"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.80"
+pingora = { path = "../pingora/pingora" }
+pingora-core = { path = "../pingora/pingora-core" }
+pingora-proxy = { path = "../pingora/pingora-proxy" }
+pingora-load-balancing = { path = "../pingora/pingora-load-balancing" }
+
