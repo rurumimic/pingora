@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use pingora::prelude::*;
+use pingora_load_balancing::health_check::TcpHealthCheck;
 use pingora_load_balancing::selection::RoundRobin;
 use pingora_load_balancing::LoadBalancer;
 use std::sync::Arc;
@@ -43,9 +44,19 @@ fn main() {
     let mut my_server = Server::new(None).unwrap();
     my_server.bootstrap();
 
-    let upstreams = LoadBalancer::try_from_iter(["1.1.1.1:443", "1.0.0.1:443"]).unwrap();
-    let mut lb = http_proxy_service(&my_server.configuration, LB(Arc::new(upstreams)));
+    let mut upstreams = LoadBalancer::try_from_iter(["1.1.1.1:443", "1.0.0.1:443", "127.0.0.1:343"]).unwrap();
+
+    let hc = TcpHealthCheck::new();
+    upstreams.set_health_check(hc);
+    upstreams.health_check_frequency = Some(std::time::Duration::from_secs(1));
+    
+    let background = background_service("health check", upstreams);
+    let upstreams = background.task();
+
+    let mut lb = http_proxy_service(&my_server.configuration, LB(upstreams));
     lb.add_tcp("0.0.0.0:6188");
+
+    my_server.add_service(background);
 
     my_server.add_service(lb);
     my_server.run_forever(); // spawn all the runtime threads and block the main thread
