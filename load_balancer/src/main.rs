@@ -5,6 +5,7 @@ use pingora_load_balancing::selection::RoundRobin;
 use pingora_load_balancing::LoadBalancer;
 use std::sync::Arc;
 
+use pingora_core::server::configuration::Opt;
 use pingora_core::server::Server;
 use pingora_core::upstreams::peer::HttpPeer;
 use pingora_proxy::{ProxyHttp, Session, http_proxy_service};
@@ -41,7 +42,8 @@ impl ProxyHttp for LB {
 }
 
 fn main() {
-    let mut my_server = Server::new(None).unwrap();
+    let opt = Opt::default();
+    let mut my_server = Server::new(Some(opt)).unwrap();
     my_server.bootstrap();
 
     let mut upstreams = LoadBalancer::try_from_iter(["1.1.1.1:443", "1.0.0.1:443", "127.0.0.1:343"]).unwrap();
@@ -49,7 +51,7 @@ fn main() {
     let hc = TcpHealthCheck::new();
     upstreams.set_health_check(hc);
     upstreams.health_check_frequency = Some(std::time::Duration::from_secs(1));
-    
+
     let background = background_service("health check", upstreams);
     let upstreams = background.task();
 

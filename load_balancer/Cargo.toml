@@ -12,4 +12,5 @@ pingora = { path = "../pingora/pingora" }
 pingora-core = { path = "../pingora/pingora-core" }
 pingora-proxy = { path = "../pingora/pingora-proxy" }
 pingora-load-balancing = { path = "../pingora/pingora-load-balancing" }
+clap = "4.5.9"
 
